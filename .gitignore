@@ -1,0 +1,50 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+.venv/
+.env/
+
+# dotenv environment file
+.env
+.env.*
+
+# VSCode settings (optional)
+.vscode/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Installer logs
+pip-log.txt
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Pytest cache
+.pytest_cache/
+
+# MyPy / Pylint / Pyre / etc.
+.mypy_cache/
+.pyre/
+.pylint.d/
+
+# Coverage reports
+htmlcov/
+coverage.xml
+*.cover
+*.py,cover
+.cache
+
+# PyCharm settings (optional)
+.idea/
+lib/
