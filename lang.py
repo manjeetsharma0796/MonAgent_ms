@@ -18,57 +18,57 @@ from langchain.chat_models import init_chat_model
 # print(res.content)
 from web3 import Web3
 
-# Polygon RPC endpoint
-POLYGON_RPC = "https://polygon-rpc.com/"
-w3 = Web3(Web3.HTTPProvider(POLYGON_RPC))
+# # Polygon RPC endpoint
+# POLYGON_RPC = "https://polygon-rpc.com/"
+# w3 = Web3(Web3.HTTPProvider(POLYGON_RPC))
 
-# USDC contract address on Polygon
-USDC_ADDRESS = Web3.to_checksum_address("0x1379E8886A944d2D9d440b3d88DF536Aea08d9F3")
+# # USDC contract address on Polygon
+# USDC_ADDRESS = Web3.to_checksum_address("0x1379E8886A944d2D9d440b3d88DF536Aea08d9F3")
 
-# Minimal ERC20 ABI to get balanceOf
-ERC20_ABI = [
-    {
-        "constant": True,
-        "inputs": [{"name": "_owner", "type": "address"}],
-        "name": "balanceOf",
-        "outputs": [{"name": "balance", "type": "uint256"}],
-        "type": "function",
-    }
-]
+# # Minimal ERC20 ABI to get balanceOf
+# ERC20_ABI = [
+#     {
+#         "constant": True,
+#         "inputs": [{"name": "_owner", "type": "address"}],
+#         "name": "balanceOf",
+#         "outputs": [{"name": "balance", "type": "uint256"}],
+#         "type": "function",
+#     }
+# ]
 
-@tool
-def get_usdc_balance(address: str) -> str:
-  """
-    Fetch the USDC token balance for a given wallet address on the Polygon blockchain.
+# @tool
+# def get_usdc_balance(address: str) -> str:
+#   """
+#     Fetch the USDC token balance for a given wallet address on the Polygon blockchain.
 
-    Parameters:
-    -----------
-    address : str
-        The wallet address (Ethereum-style hex string) to query the USDC balance for.
+#     Parameters:
+#     -----------
+#     address : str
+#         The wallet address (Ethereum-style hex string) to query the USDC balance for.
 
-    Returns:
-    --------
-    str
-        A human-readable string showing the USDC balance for the address on Polygon.
-        Returns an error message if the address is invalid or the query fails.
+#     Returns:
+#     --------
+#     str
+#         A human-readable string showing the USDC balance for the address on Polygon.
+#         Returns an error message if the address is invalid or the query fails.
 
-    Example:
-    --------
-    >>> get_usdc_balance_polygon("0x1234...abcd")
-    "USDC balance of 0x1234...abcd on Polygon: 150.25 USDC"
-  """
-  if not Web3.is_address(address):
-      return "Invalid wallet address."
+#     Example:
+#     --------
+#     >>> get_usdc_balance_polygon("0x1234...abcd")
+#     "USDC balance of 0x1234...abcd on Polygon: 150.25 USDC"
+#   """
+#   if not Web3.is_address(address):
+#       return "Invalid wallet address."
 
-  address = Web3.to_checksum_address(address)
-  contract = w3.eth.contract(address=USDC_ADDRESS, abi=ERC20_ABI)
-  balance = contract.functions.balanceOf(address).call()
+#   address = Web3.to_checksum_address(address)
+#   contract = w3.eth.contract(address=USDC_ADDRESS, abi=ERC20_ABI)
+#   balance = contract.functions.balanceOf(address).call()
 
-    # USDC has 6 decimals
-  decimals = 6
-  readable_balance = balance / (10 ** decimals)
+#     # USDC has 6 decimals
+#   decimals = 6
+#   readable_balance = balance / (10 ** decimals)
 
-  return f"USDC balance of {address} on Polygon: {readable_balance} USDC"
+#   return f"USDC balance of {address} on Polygon: {readable_balance} USDC"
 
 
 @tool
@@ -136,6 +136,12 @@ EVM_CHAINS = {
         "explorer_api": "https://api.bscscan.com/api",
         "explorer_key_env": "BSCSCAN_API_KEY"
     },
+    
+    "arbitrum": {
+        "rpc": "https://arb1.arbitrum.io/rpc",
+        "explorer_api": "https://api.arbiscan.io/api",
+        "explorer_key_env": "ARBISCAN_API_KEY"
+    },
     # Add more EVM chains here
 }
 
@@ -145,6 +151,7 @@ EVM_CHAINS = {
 def get_main_balances(address: str, chain: str = "polygon") -> str:
     """
     Get balances for native token, USDC, and USDT for a wallet address on a specified EVM chain (default: polygon).
+    Currently supports Polygon, Ethereum, BSC, and Arbitrum.
     """
     from web3 import Web3
     import requests
@@ -160,7 +167,8 @@ def get_main_balances(address: str, chain: str = "polygon") -> str:
         native_symbol = {
             "polygon": "MATIC",
             "ethereum": "ETH",
-            "bsc": "BNB"
+            "bsc": "BNB",
+            "arbitrum": "ETH"
         }.get(chain, "Native")
         native_balance = native_balance / 1e18
     except Exception as e:
@@ -213,6 +221,7 @@ def get_main_balances(address: str, chain: str = "polygon") -> str:
 def get_wallet_transactions(address: str, chain: str = "polygon", limit: int = 10) -> str:
     """
     Show recent transactions (native and token) done by the user (sent or received) on a given chain.
+    Currently supports Polygon, Ethereum, BSC, and Arbitrum.
     """
     from web3 import Web3
     import requests
@@ -246,7 +255,7 @@ def get_wallet_transactions(address: str, chain: str = "polygon", limit: int = 1
     except Exception as e:
         return f"Failed to fetch transactions: {e}"
 
-tools = [add, sub, mul, get_usdc_balance, web_search, get_main_balances, get_wallet_transactions]
+tools = [add, sub, mul, web_search, get_main_balances, get_wallet_transactions]
 
 #From Youtube video https://youtu.be/zCwuAlpQKTM
 from langchain.chat_models import init_chat_model
