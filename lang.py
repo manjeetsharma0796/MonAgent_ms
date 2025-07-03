@@ -257,8 +257,10 @@ from langchain.prompts.chat import ChatPromptTemplate, MessagesPlaceholder
 
 llm = init_chat_model(model="gemini-2.0-flash",  model_provider="google_genai")
 
+
 prompt = ChatPromptTemplate.from_messages([
     ("system", "you are helpful agent, if a tool is not relevant, answer the user's question directly and chat."),
+    MessagesPlaceholder("chat_history"),
     ("human", "{input}"),
     MessagesPlaceholder("agent_scratchpad"),
 ])
