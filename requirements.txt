@@ -20,3 +20,4 @@ pytest
 redis-py-cluster
 
 # If you use any other tools, add them here
+setuptools
