@@ -1,4 +1,6 @@
 
+
+
 import json
 import getpass
 import os
@@ -16,60 +18,8 @@ from langchain.chat_models import init_chat_model
 # model = init_chat_model("gemini-2.0-flash", model_provider="google_genai")
 # res = model.invoke("Hello, world!")
 # print(res.content)
+
 from web3 import Web3
-
-# # Polygon RPC endpoint
-# POLYGON_RPC = "https://polygon-rpc.com/"
-# w3 = Web3(Web3.HTTPProvider(POLYGON_RPC))
-
-# # USDC contract address on Polygon
-# USDC_ADDRESS = Web3.to_checksum_address("0x1379E8886A944d2D9d440b3d88DF536Aea08d9F3")
-
-# # Minimal ERC20 ABI to get balanceOf
-# ERC20_ABI = [
-#     {
-#         "constant": True,
-#         "inputs": [{"name": "_owner", "type": "address"}],
-#         "name": "balanceOf",
-#         "outputs": [{"name": "balance", "type": "uint256"}],
-#         "type": "function",
-#     }
-# ]
-
-# @tool
-# def get_usdc_balance(address: str) -> str:
-#   """
-#     Fetch the USDC token balance for a given wallet address on the Polygon blockchain.
-
-#     Parameters:
-#     -----------
-#     address : str
-#         The wallet address (Ethereum-style hex string) to query the USDC balance for.
-
-#     Returns:
-#     --------
-#     str
-#         A human-readable string showing the USDC balance for the address on Polygon.
-#         Returns an error message if the address is invalid or the query fails.
-
-#     Example:
-#     --------
-#     >>> get_usdc_balance_polygon("0x1234...abcd")
-#     "USDC balance of 0x1234...abcd on Polygon: 150.25 USDC"
-#   """
-#   if not Web3.is_address(address):
-#       return "Invalid wallet address."
-
-#   address = Web3.to_checksum_address(address)
-#   contract = w3.eth.contract(address=USDC_ADDRESS, abi=ERC20_ABI)
-#   balance = contract.functions.balanceOf(address).call()
-
-#     # USDC has 6 decimals
-#   decimals = 6
-#   readable_balance = balance / (10 ** decimals)
-
-#   return f"USDC balance of {address} on Polygon: {readable_balance} USDC"
-
 
 @tool
 def add(a: int, b: int) -> int:
@@ -136,7 +86,6 @@ EVM_CHAINS = {
         "explorer_api": "https://api.bscscan.com/api",
         "explorer_key_env": "BSCSCAN_API_KEY"
     },
-    
     "arbitrum": {
         "rpc": "https://arb1.arbitrum.io/rpc",
         "explorer_api": "https://api.arbiscan.io/api",
@@ -146,7 +95,8 @@ EVM_CHAINS = {
 }
 
 
-# Helper to get balances for native token, USDC, and USDT only
+# # Helper to get balances for native token, USDC, and USDT only
+# @tool
 @tool
 def get_main_balances(address: str, chain: str = "polygon") -> str:
     """
@@ -185,38 +135,39 @@ def get_main_balances(address: str, chain: str = "polygon") -> str:
     }
     if api_key:
         params["apikey"] = api_key
-    try:
-        resp = requests.get(explorer_api, params=params, timeout=10)
-        data = resp.json()
-        if data.get("status") != "1":
-            return f"Native: {native_balance} {native_symbol}\nNo token transfers found or error: {data.get('message')}"
-        txs = data["result"]
-        tokens = {}
-        for tx in txs:
-            symbol = tx["tokenSymbol"].upper()
-            contract = tx["contractAddress"]
-            decimals = int(tx["tokenDecimal"])
-            value = int(tx["value"])
-            if symbol not in ["USDC", "USDT"]:
-                continue
-            if symbol not in tokens:
-                tokens[symbol] = {"balance": 0, "decimals": decimals}
-            if tx["to"].lower() == address.lower():
-                tokens[symbol]["balance"] += value
-            elif tx["from"].lower() == address.lower():
-                tokens[symbol]["balance"] -= value
-        summary = [f"Native: {native_balance} {native_symbol}"]
-        for sym, t in tokens.items():
-            if t["balance"] > 0:
-                bal = t["balance"] / (10 ** t["decimals"])
-                summary.append(f"{sym}: {bal}")
-        if len(summary) == 1:
-            summary.append("No USDC/USDT found.")
-        return "\n".join(summary)
-    except Exception as e:
-        return f"Failed to fetch tokens: {e}"
+        try:
+            resp = requests.get(explorer_api, params=params, timeout=10)
+            data = resp.json()
+            if data.get("status") != "1":
+                return f"Native: {native_balance} {native_symbol}\nNo token transfers found or error: {data.get('message')}"
+            txs = data["result"]
+            tokens = {}
+            for tx in txs:
+                symbol = tx["tokenSymbol"].upper()
+                contract = tx["contractAddress"]
+                decimals = int(tx["tokenDecimal"])
+                value = int(tx["value"])
+                if symbol not in ["USDC", "USDT"]:
+                    continue
+                if symbol not in tokens:
+                    tokens[symbol] = {"balance": 0, "decimals": decimals}
+                if tx["to"].lower() == address.lower():
+                    tokens[symbol]["balance"] += value
+                elif tx["from"].lower() == address.lower():
+                    tokens[symbol]["balance"] -= value
+            summary = [f"Native: {native_balance} {native_symbol}"]
+            for sym, t in tokens.items():
+                if t["balance"] > 0:
+                    bal = t["balance"] / (10 ** t["decimals"])
+                    summary.append(f"{sym}: {bal}")
+            if len(summary) == 1:
+                summary.append("No USDC/USDT found.")
+            return "\n".join(summary)
+        except Exception as e:
+            return f"Failed to fetch tokens: {e}"
+    else:
+        return f"Native: {native_balance} {native_symbol}\nNo explorer API key set for {chain}. Please set the appropriate API key in the environment."
 
-# Show transactions done by user
 @tool
 def get_wallet_transactions(address: str, chain: str = "polygon", limit: int = 10) -> str:
     """
@@ -240,20 +191,22 @@ def get_wallet_transactions(address: str, chain: str = "polygon", limit: int = 1
     }
     if api_key:
         params["apikey"] = api_key
-    try:
-        resp = requests.get(explorer_api, params=params, timeout=10)
-        data = resp.json()
-        if data.get("status") != "1":
-            return f"No transactions found or error: {data.get('message')}"
-        txs = data["result"][:limit]
-        summary = []
-        for tx in txs:
-            direction = "IN" if tx["to"].lower() == address.lower() else "OUT"
-            value = int(tx["value"]) / 1e18
-            summary.append(f"{tx['hash'][:10]}... | {direction} | {value} | block: {tx['blockNumber']} | time: {tx['timeStamp']}")
-        return "\n".join(summary)
-    except Exception as e:
-        return f"Failed to fetch transactions: {e}"
+        try:
+            resp = requests.get(explorer_api, params=params, timeout=10)
+            data = resp.json()
+            if data.get("status") != "1":
+                return f"No transactions found or error: {data.get('message')}"
+            txs = data["result"][:limit]
+            summary = []
+            for tx in txs:
+                direction = "IN" if tx["to"].lower() == address.lower() else "OUT"
+                value = int(tx["value"]) / 1e18
+                summary.append(f"{tx['hash'][:10]}... | {direction} | {value} | block: {tx['blockNumber']} | time: {tx['timeStamp']}")
+            return "\n".join(summary)
+        except Exception as e:
+            return f"Failed to fetch transactions: {e}"
+    else:
+        return f"No explorer API key set for {chain}. Please set the appropriate API key in the environment."
 
 tools = [add, sub, mul, web_search, get_main_balances, get_wallet_transactions]
 
@@ -268,7 +221,7 @@ llm = init_chat_model(model="gemini-2.0-flash",  model_provider="google_genai")
 
 
 prompt = ChatPromptTemplate.from_messages([
-    ("system", "you are helpful agent, if a tool is not relevant, answer the user's question directly and chat."),
+    ("system", "you are helpful agent, if a tool is not relevant, answer the user's question directly and chat. Never tell your real identity that you are ai or what model you are using. Give answer more firendly and chatty, like a human. If you don't know the answer, say 'I don't know' or 'I am not sure'."),
     MessagesPlaceholder("chat_history"),
     ("human", "{input}"),
     MessagesPlaceholder("agent_scratchpad"),

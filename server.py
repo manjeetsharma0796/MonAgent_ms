@@ -1,9 +1,8 @@
-
-
 from fastapi import FastAPI, Request
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 from lang import agent_executor
+from fastapi.middleware.cors import CORSMiddleware
 
 
 import redis
@@ -33,6 +32,15 @@ except Exception as e:
     print(f"[Redis] Connection failed: {e}")
 
 app = FastAPI()
+
+# Allow all CORS origins
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class QueryRequest(BaseModel):

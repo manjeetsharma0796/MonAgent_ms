@@ -1,0 +1,21 @@
+# Core dependencies
+fastapi
+uvicorn
+python-dotenv
+redis
+langchain
+web3
+serpapi
+requests
+
+# For Google Gemini (if using Google Generative AI)
+google-generativeai
+
+# Optional: for local development and testing
+autopep8
+pytest
+
+# If using cloud Redis, you may want:
+redis-py-cluster
+
+# If you use any other tools, add them here
