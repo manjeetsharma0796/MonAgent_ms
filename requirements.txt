@@ -10,6 +10,7 @@ requests
 
 # For Google Gemini (if using Google Generative AI)
 google-generativeai
+langchain-google-genai
 
 # Optional: for local development and testing
 autopep8
