@@ -72,16 +72,43 @@ async def query(request: QueryRequest):
         # Run blocking agent_executor.invoke in a thread pool
         response = await run_in_threadpool(agent_executor.invoke, agent_input)
 
+        # Parse response to check if it's a structured response with action_type
+        output = response["output"]
+        action_type = "chat"  # Default action type for regular chat
+        
+        # Import the normalization function from lang.py
+        from lang import normalize_agent_response
+        
+        try:
+            # Normalize the response to handle markdown fences and ensure consistency
+            normalized_response = normalize_agent_response(output)
+            
+            # If we got a normalized response, use it
+            if isinstance(normalized_response, dict) and "action_type" in normalized_response:
+                action_type = normalized_response["action_type"]
+                output = json.dumps(normalized_response)  # Convert back to JSON string
+            else:
+                # Try to parse as JSON to check for action_type
+                parsed_response = json.loads(output)
+                if isinstance(parsed_response, dict) and "action_type" in parsed_response:
+                    action_type = parsed_response["action_type"]
+        except (json.JSONDecodeError, TypeError):
+            # Not a JSON response, treat as regular chat
+            pass
+
         # Update user context in Redis (LangChain expects role/content format)
         history.extend([
             {"role": "user", "content": request.input},
-            {"role": "assistant", "content": response["output"]}
+            {"role": "assistant", "content": output}
         ])
         redis_client.set(f"chat_history:{request.user_id}", json.dumps(history))
 
-        return {"output": response["output"]}
+        return {
+            "output": output,
+            "action_type": action_type
+        }
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": str(e), "action_type": "error"}
 
 @app.get("/")
 def root():
