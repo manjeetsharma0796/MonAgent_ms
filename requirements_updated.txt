@@ -1,0 +1,23 @@
+# Core dependencies
+fastapi>=0.100.0
+uvicorn[standard]>=0.20.0
+python-dotenv>=1.0.0
+redis>=4.5.0
+langchain>=0.1.0
+web3>=6.0.0
+serpapi>=0.1.5
+requests>=2.28.0
+
+# For Google Gemini (updated versions)
+google-generativeai>=0.8.0
+langchain-google-genai>=2.0.0
+
+# Optional: for local development and testing
+autopep8>=2.0.0
+pytest>=7.0.0
+
+# Remove redis-py-cluster unless specifically needed for cluster setup
+# redis-py-cluster
+
+# If you use any other tools, add them here
+setuptools>=65.0.0
