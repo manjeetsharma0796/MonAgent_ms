@@ -1,26 +1,23 @@
-# ---- Core ----
-fastapi==0.115.0
-uvicorn==0.30.1
-python-dotenv==1.0.1
-requests==2.32.3
-setuptools==75.1.0
-
-# ---- Redis ----
-redis==5.0.8
-redis-py-cluster==2.1.3
-
-# ---- LangChain ----
+# Core dependencies
+fastapi
+uvicorn
+python-dotenv
+redis
 langchain==0.0.325
-langchain-google-genai==0.0.9
+web3
+serpapi
+requests
 
-# ---- Web3 ----
-web3==6.20.1
+# For Google Gemini (if using Google Generative AI)
+google-generativeai
+langchain-google-genai
 
-# ---- Google Gemini ----
-google-generativeai==0.6.15
-protobuf==5.27.0
-proto-plus==1.26.0
+# Optional: for local development and testing
+autopep8
+pytest
 
-# ---- Dev Tools ----
-autopep8==2.3.1
-pytest==8.3.3
+# If using cloud Redis, you may want:
+redis-py-cluster
+
+# If you use any other tools, add them here
+setuptools
