@@ -3,7 +3,7 @@ fastapi
 uvicorn
 python-dotenv
 redis
-langchain
+langchain==0.0.325
 web3
 serpapi
 requests
